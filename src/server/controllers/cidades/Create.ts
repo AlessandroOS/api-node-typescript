@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as yup from 'yup';
 
@@ -13,13 +13,10 @@ const bodyValidation: yup.ObjectSchema<Icidade> = yup.object().shape({
 
 });
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const create = async (req: Request<{}, {}, Icidade>, res: Response) => {
-
-    let validatedData: Icidade | undefined;
-
+export const createBodyValidator: RequestHandler = async (req, res, next) => {
     try{
-        validatedData = await bodyValidation.validate(req.body, {abortEarly: false});
+        await bodyValidation.validate(req.body, {abortEarly: false});
+        return next();
     }catch (err) {
         const yupError = err as yup.ValidationError;
         const errors: Record<string, string> = {};
@@ -32,7 +29,12 @@ export const create = async (req: Request<{}, {}, Icidade>, res: Response) => {
         return res.status(StatusCodes.BAD_REQUEST).json ({errors})
     }
 
-    console.log(validatedData);
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const create = async (req: Request<{}, {}, Icidade>, res: Response) => {
+
+    console.log(req.body);
 
     return res.send('Create!');
 };
